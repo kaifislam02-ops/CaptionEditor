@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎨 Caption Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1c1c1c;
+      --surface3: #222;
+      --border: #282828;
+      --border2: #333;
+      --text: #f0ede8;
+      --muted: #555;
+      --muted2: #777;
+      --accent: #c8f135;
+      --accent2: #ff6b6b;
+      --accent3: #6bffb8;
+      --glow: rgba(200,241,53,0.1);
+    }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Instrument Sans', sans-serif;
+      min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border);
+      background: var(--surface); position: sticky; top: 0; z-index: 100;
+      flex-wrap: wrap;
+    }
+
+    .logo-mark {
+      background: var(--accent); color: var(--bg);
+      font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem;
+      letter-spacing: 0.08em; padding: 0.25rem 0.75rem; border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .suite-tag {
+      font-size: 0.68rem; font-weight: 600; color: var(--muted2);
+      border: 1px solid var(--border2); padding: 0.18rem 0.55rem; border-radius: 99px;
+    }
+
+    .topbar-actions { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+
+    .nav-link {
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      text-decoration: none; border: 1px solid var(--border2);
+      padding: 0.25rem 0.65rem; border-radius: 4px; transition: all 0.15s; white-space: nowrap;
+    }
+    .nav-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    .export-btn {
+      background: var(--accent); border: none; color: var(--bg);
+      font-family: 'Instrument Sans', sans-serif; font-size: 0.82rem; font-weight: 700;
+      padding: 0.45rem 1.1rem; border-radius: 4px; cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .export-btn:hover { background: #d4f54a; }
+    .export-btn:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; }
+
+    /* ── UPLOAD SCREEN ── */
+    #upload-screen {
+      min-height: calc(100vh - 53px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 3rem 1.5rem; gap: 2rem;
+    }
+
+    .upload-headline {
+      text-align: center;
+    }
+
+    .upload-headline h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      line-height: 0.92; letter-spacing: -0.01em;
+      color: var(--text); margin-bottom: 0.75rem;
+    }
+    .upload-headline h1 em { font-style: normal; color: var(--accent); }
+    .upload-headline p { font-size: 0.95rem; color: var(--muted2); max-width: 440px; line-height: 1.6; }
+
+    .upload-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem; width: 100%; max-width: 600px;
+    }
+
+    .upload-box {
+      background: var(--surface); border: 1.5px dashed var(--border2);
+      border-radius: 10px; padding: 2rem 1.5rem; text-align: center;
+      cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .upload-box:hover, .upload-box.dragover {
+      border-color: var(--accent); background: rgba(200,241,53,0.04);
+    }
+    .upload-box input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-box.done { border-style: solid; border-color: var(--accent3); }
+
+    .upload-icon { font-size: 2rem; margin-bottom: 0.6rem; display: block; }
+    .upload-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+    .upload-sub { font-size: 0.75rem; color: var(--muted2); }
+    .upload-done { font-size: 0.75rem; color: var(--accent3); margin-top: 0.4rem; font-weight: 600; }
+
+    .start-btn {
+      background: var(--accent); border: none; color: var(--bg);
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; font-weight: 700;
+      letter-spacing: 0.08em; padding: 0.9rem 2.5rem; border-radius: 8px;
+      cursor: pointer; transition: all 0.15s; opacity: 0.4; pointer-events: none;
+    }
+    .start-btn.ready { opacity: 1; pointer-events: all; }
+    .start-btn.ready:hover { background: #d4f54a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(200,241,53,0.2); }
+
+    /* ── EDITOR SCREEN ── */
+    #editor-screen { display: none; height: calc(100vh - 53px); }
+
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      height: 100%;
+    }
+
+    /* Preview pane */
+    .preview-pane {
+      background: #000; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      position: relative; overflow: hidden; padding: 1.5rem;
+    }
+
+    .video-container {
+      position: relative; width: 100%; max-width: 640px;
+      background: #000; border-radius: 6px; overflow: hidden;
+      box-shadow: 0 0 0 1px var(--border2), 0 20px 60px rgba(0,0,0,0.8);
+    }
+
+    #preview-video {
+      width: 100%; display: block;
+      max-height: calc(100vh - 180px);
+      object-fit: contain;
+    }
+
+    /* Caption overlay */
+    #caption-overlay {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+
+    #caption-box {
+      position: absolute;
+      cursor: move;
+      pointer-events: all;
+      user-select: none;
+      max-width: 90%;
+      text-align: center;
+      padding: 0.3em 0.6em;
+      border-radius: 4px;
+      transition: opacity 0.15s;
+      /* default position — bottom center */
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      line-height: 1.3;
+    }
+
+    #caption-box.hidden { opacity: 0; pointer-events: none; }
+
+    /* drag handle indicator */
+    #caption-box::before {
+      content: '⠿';
+      position: absolute;
+      top: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; color: rgba(200,241,53,0.6);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    #caption-box:hover::before { opacity: 1; }
+
+    /* position grid buttons */
+    .position-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 1rem;
+    }
+
+    .pos-btn {
+      aspect-ratio: 1; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 4px; cursor: pointer; transition: all 0.12s;
+      display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--muted2);
+    }
+    .pos-btn:hover { border-color: var(--muted2); color: var(--text); }
+    .pos-btn.active { background: rgba(200,241,53,0.12); border-color: var(--accent); color: var(--accent); }
+
+    /* video controls */
+    .video-controls {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1rem; background: rgba(0,0,0,0.6);
+      border-top: 1px solid var(--border); width: 100%; max-width: 640px;
+      border-radius: 0 0 6px 6px;
+    }
+
+    .play-btn {
+      background: var(--accent); border: none; color: var(--bg);
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+      font-size: 0.8rem; display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s; flex-shrink: 0;
+    }
+    .play-btn:hover { background: #d4f54a; transform: scale(1.05); }
+
+    .timeline {
+      flex: 1; height: 4px; background: var(--border2); border-radius: 99px;
+      cursor: pointer; position: relative;
+    }
+    .timeline-progress {
+      height: 100%; background: var(--accent); border-radius: 99px;
+      width: 0%; transition: width 0.1s linear; pointer-events: none;
+    }
+
+    .time-display {
+      font-family: 'Courier New', monospace; font-size: 0.72rem; color: var(--muted2);
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* ── STYLE PANEL ── */
+    .style-panel {
+      background: var(--surface); border-left: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+
+    .style-panel::-webkit-scrollbar { width: 4px; }
+    .style-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+    .panel-section {
+      padding: 1rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-label {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; display: block;
+    }
+
+    /* font selector */
+    .font-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;
+    }
+
+    .font-btn {
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted2); font-size: 0.78rem; font-weight: 600;
+      padding: 0.45rem 0.5rem; cursor: pointer; transition: all 0.12s; border-radius: 4px;
+      text-align: center;
+    }
+    .font-btn:hover { border-color: var(--muted2); color: var(--text); }
+    .font-btn.active { background: rgba(200,241,53,0.1); border-color: var(--accent); color: var(--accent); }
+
+    /* size slider */
+    .size-row {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .size-slider {
+      flex: 1; -webkit-appearance: none; appearance: none;
+      height: 3px; background: var(--border2); border-radius: 99px; outline: none; cursor: pointer;
+    }
+    .size-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); cursor: pointer;
+    }
+    .size-value {
+      font-family: monospace; font-size: 0.78rem; color: var(--muted2);
+      min-width: 32px; text-align: right;
+    }
+
+    /* color pickers */
+    .color-row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+
+    .color-item { display: flex; flex-direction: column; gap: 0.3rem; align-items: center; }
+    .color-item label { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; }
+    .color-item input[type="color"] {
+      width: 36px; height: 30px; border: 1px solid var(--border2);
+      border-radius: 4px; cursor: pointer; background: none; padding: 2px;
+    }
+
+    /* bg opacity */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .toggle-label { font-size: 0.8rem; color: var(--muted2); }
+
+    .toggle {
+      width: 36px; height: 20px; background: var(--border2); border-radius: 99px;
+      cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 16px; height: 16px; background: white; border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* style pills */
+    .style-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .style-pill {
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted2); font-size: 0.75rem; font-weight: 600;
+      padding: 0.3rem 0.65rem; cursor: pointer; transition: all 0.12s; border-radius: 4px;
+    }
+    .style-pill:hover { border-color: var(--muted2); color: var(--text); }
+    .style-pill.active { background: rgba(200,241,53,0.1); border-color: var(--accent); color: var(--accent); }
+
+    /* animation pills */
+    .anim-pills { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+    .anim-pill {
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--muted2); font-size: 0.75rem; font-weight: 600;
+      padding: 0.4rem 0.5rem; cursor: pointer; transition: all 0.12s; border-radius: 4px;
+      text-align: center;
+    }
+    .anim-pill:hover { border-color: var(--muted2); color: var(--text); }
+    .anim-pill.active { background: rgba(200,241,53,0.1); border-color: var(--accent); color: var(--accent); }
+
+    /* caption list */
+    .caption-list {
+      flex: 1; padding: 0.75rem; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .caption-list::-webkit-scrollbar { width: 4px; }
+    .caption-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+    .caption-item {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.5rem 0.65rem; cursor: pointer; transition: all 0.12s;
+    }
+    .caption-item:hover { border-color: var(--border2); }
+    .caption-item.active { border-color: var(--accent); background: rgba(200,241,53,0.05); }
+
+    .caption-item-time { font-family: monospace; font-size: 0.65rem; color: var(--muted); margin-bottom: 0.2rem; }
+    .caption-item-text { font-size: 0.78rem; color: var(--text); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* export progress */
+    .export-progress {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 1.5rem;
+    }
+    .export-progress.show { display: flex; }
+    .export-box {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 2rem 2.5rem; text-align: center; max-width: 400px; width: 90%;
+    }
+    .export-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--text); margin-bottom: 0.5rem; }
+    .export-sub { font-size: 0.85rem; color: var(--muted2); margin-bottom: 1.25rem; line-height: 1.5; }
+    .export-bar-wrap { height: 4px; background: var(--border2); border-radius: 99px; overflow: hidden; margin-bottom: 0.75rem; }
+    .export-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width 0.3s ease; }
+    .export-status { font-size: 0.78rem; color: var(--muted2); }
+
+    /* animations for captions */
+    @keyframes captionFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes captionPop  { from { opacity: 0; transform: translateX(-50%) scale(0.8); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+    @keyframes captionSlide { from { opacity: 0; transform: translateX(-50%) translateY(12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes captionType { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0% 0 0); } }
+
+    .anim-fade  { animation: captionFade  0.3s ease both; }
+    .anim-pop   { animation: captionPop   0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .anim-slide { animation: captionSlide 0.3s ease both; }
+    .anim-type  { animation: captionType  0.4s steps(30) both; }
+
+    /* responsive */
+    @media (max-width: 700px) {
+      .editor-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .style-panel { border-left: none; border-top: 1px solid var(--border); max-height: 50vh; }
+      #editor-screen { height: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo-mark">🎨 Caption Editor</div>
+  <div class="suite-tag">Creator Suite</div>
+  <div class="topbar-actions">
+    <a class="nav-link" href="https://kaifislam02-ops.github.io/CaptionGenerator" target="_blank">🎬 Generator ↗</a>
+    <a class="nav-link" href="https://kaifislam02-ops.github.io/HookLab" target="_blank">🧲 Hook Lab ↗</a>
+    <button class="export-btn" id="export-btn" disabled>⬇ Export Video</button>
+  </div>
+</div>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="upload-headline">
+    <h1>STYLE YOUR<br><em>CAPTIONS.</em></h1>
+    <p>Upload your video + SRT file from Caption Generator. Style, position and export with captions burned in.</p>
+  </div>
+
+  <div class="upload-grid">
+    <div class="upload-box" id="video-upload-box">
+      <input type="file" id="video-file-input" accept="video/*"/>
+      <span class="upload-icon">🎬</span>
+      <div class="upload-title">Upload Video</div>
+      <div class="upload-sub">MP4, MOV, AVI, MKV</div>
+      <div class="upload-done" id="video-done" style="display:none">✓ Video ready</div>
+    </div>
+
+    <div class="upload-box" id="srt-upload-box">
+      <input type="file" id="srt-file-input" accept=".srt,.txt"/>
+      <span class="upload-icon">📄</span>
+      <div class="upload-title">Upload SRT File</div>
+      <div class="upload-sub">From Caption Generator</div>
+      <div class="upload-done" id="srt-done" style="display:none">✓ SRT ready</div>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn">OPEN EDITOR →</button>
+</div>
+
+<!-- EDITOR SCREEN -->
+<div id="editor-screen">
+  <div class="editor-layout">
+
+    <!-- Preview -->
+    <div class="preview-pane">
+      <div class="video-container">
+        <video id="preview-video" playsinline></video>
+        <div id="caption-overlay">
+          <div id="caption-box" class="hidden"></div>
+        </div>
+        <div class="video-controls">
+          <button class="play-btn" id="play-btn">▶</button>
+          <div class="timeline" id="timeline">
+            <div class="timeline-progress" id="timeline-progress"></div>
+          </div>
+          <div class="time-display" id="time-display">0:00 / 0:00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style Panel -->
+    <div class="style-panel">
+
+      <!-- Font -->
+      <div class="panel-section">
+        <span class="panel-label">Font</span>
+        <div class="font-grid" id="font-grid">
+          <button class="font-btn active" data-font="'Instrument Sans', sans-serif" style="font-family:'Instrument Sans',sans-serif">Clean</button>
+          <button class="font-btn" data-font="'Bebas Neue', sans-serif" style="font-family:'Bebas Neue',sans-serif">IMPACT</button>
+          <button class="font-btn" data-font="'Courier New', monospace" style="font-family:'Courier New',monospace">Mono</button>
+          <button class="font-btn" data-font="Georgia, serif" style="font-family:Georgia,serif">Serif</button>
+        </div>
+      </div>
+
+      <!-- Size + Style -->
+      <div class="panel-section">
+        <span class="panel-label">Size</span>
+        <div class="size-row">
+          <input type="range" class="size-slider" id="size-slider" min="12" max="64" value="24"/>
+          <span class="size-value" id="size-value">24px</span>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <div class="style-pills" id="style-pills">
+            <button class="style-pill active" data-style="bold">B Bold</button>
+            <button class="style-pill" data-style="italic">I Italic</button>
+            <button class="style-pill" data-style="shadow">◈ Shadow</button>
+            <button class="style-pill" data-style="outline">⬡ Outline</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colors -->
+      <div class="panel-section">
+        <span class="panel-label">Colors</span>
+        <div class="color-row">
+          <div class="color-item">
+            <input type="color" id="text-color" value="#ffffff"/>
+            <label>Text</label>
+          </div>
+          <div class="color-item">
+            <input type="color" id="bg-color" value="#000000"/>
+            <label>BG</label>
+          </div>
+          <div class="color-item">
+            <input type="color" id="outline-color" value="#000000"/>
+            <label>Outline</label>
+          </div>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <div class="toggle-row">
+            <span class="toggle-label">Background box</span>
+            <div class="toggle on" id="bg-toggle"></div>
+          </div>
+          <div class="size-row">
+            <span style="font-size:0.72rem;color:var(--muted)">Opacity</span>
+            <input type="range" class="size-slider" id="bg-opacity" min="0" max="100" value="70"/>
+            <span class="size-value" id="bg-opacity-value">70%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div class="panel-section">
+        <span class="panel-label">Quick Position</span>
+        <div class="position-grid" id="position-grid">
+          <button class="pos-btn" data-pos="top-left">↖</button>
+          <button class="pos-btn" data-pos="top-center">↑</button>
+          <button class="pos-btn" data-pos="top-right">↗</button>
+          <button class="pos-btn" data-pos="mid-left">←</button>
+          <button class="pos-btn" data-pos="mid-center">·</button>
+          <button class="pos-btn" data-pos="mid-right">→</button>
+          <button class="pos-btn" data-pos="bot-left">↙</button>
+          <button class="pos-btn active" data-pos="bot-center">↓</button>
+          <button class="pos-btn" data-pos="bot-right">↘</button>
+        </div>
+        <div style="font-size:0.68rem;color:var(--muted);text-align:center;margin-top:0.25rem;">or drag caption on video</div>
+      </div>
+
+      <!-- Animation -->
+      <div class="panel-section">
+        <span class="panel-label">Animation</span>
+        <div class="anim-pills" id="anim-pills">
+          <button class="anim-pill active" data-anim="fade">✦ Fade</button>
+          <button class="anim-pill" data-anim="pop">💥 Pop</button>
+          <button class="anim-pill" data-anim="slide">↑ Slide</button>
+          <button class="anim-pill" data-anim="none">— None</button>
+        </div>
+      </div>
+
+      <!-- Caption List -->
+      <div class="panel-section" style="border-bottom:none;">
+        <span class="panel-label">Captions (<span id="caption-count">0</span>)</span>
+      </div>
+      <div class="caption-list" id="caption-list"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT PROGRESS -->
+<div class="export-progress" id="export-progress">
+  <div class="export-box">
+    <div class="export-title">EXPORTING...</div>
+    <div class="export-sub">Burning captions into your video. This may take a minute depending on video length.</div>
+    <div class="export-bar-wrap"><div class="export-bar" id="export-bar"></div></div>
+    <div class="export-status" id="export-status">Preparing...</div>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let videoFile    = null;
+  let srtFile      = null;
+  let captions     = [];
+  let currentCapIdx = -1;
+  let captionAnimId = null;
+
+  // Style state
+  let styles = {
+    font:       "'Instrument Sans', sans-serif",
+    size:       24,
+    bold:       true,
+    italic:     false,
+    shadow:     false,
+    outline:    false,
+    textColor:  '#ffffff',
+    bgColor:    '#000000',
+    bgOn:       true,
+    bgOpacity:  70,
+    outlineColor: '#000000',
+    animation:  'fade',
+    posX:       50,  // % from left
+    posY:       88,  // % from top
+  };
+
+  // ── FILE UPLOAD ──
+  document.getElementById('video-file-input').addEventListener('change', function() {
+    if (!this.files[0]) return;
+    videoFile = this.files[0];
+    document.getElementById('video-done').style.display = 'block';
+    document.getElementById('video-upload-box').classList.add('done');
+    checkBothUploaded();
+  });
+
+  document.getElementById('srt-file-input').addEventListener('change', function() {
+    if (!this.files[0]) return;
+    srtFile = this.files[0];
+    document.getElementById('srt-done').style.display = 'block';
+    document.getElementById('srt-upload-box').classList.add('done');
+    checkBothUploaded();
+  });
+
+  // Drag over for upload boxes
+  ['video-upload-box', 'srt-upload-box'].forEach(id => {
+    const box = document.getElementById(id);
+    box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('dragover'); });
+    box.addEventListener('dragleave', () => box.classList.remove('dragover'));
+  });
+
+  function checkBothUploaded() {
+    const btn = document.getElementById('start-btn');
+    if (videoFile && srtFile) btn.classList.add('ready');
+    else btn.classList.remove('ready');
+  }
+
+  document.getElementById('start-btn').addEventListener('click', () => {
+    if (!videoFile || !srtFile) return;
+    loadEditor();
+  });
+
+  // ── LOAD EDITOR ──
+  async function loadEditor() {
+    // Parse SRT
+    const srtText = await srtFile.text();
+    captions = parseSRT(srtText);
+
+    // Setup video
+    const video = document.getElementById('preview-video');
+    video.src = URL.createObjectURL(videoFile);
+
+    // Switch screens
+    document.getElementById('upload-screen').style.display = 'none';
+    document.getElementById('editor-screen').style.display = 'block';
+    document.getElementById('export-btn').disabled = false;
+
+    // Render caption list
+    renderCaptionList();
+    applyStyles();
+
+    // Start caption sync
+    video.addEventListener('timeupdate', syncCaptions);
+  }
+
+  // ── SRT PARSER ──
+  function parseSRT(text) {
+    const blocks = text.trim().split(/\n\s*\n/);
+    return blocks.map(block => {
+      const lines = block.trim().split('\n');
+      if (lines.length < 3) return null;
+      const timeMatch = lines[1].match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/);
+      if (!timeMatch) return null;
+      return {
+        index: parseInt(lines[0]),
+        start: parseTime(timeMatch[1]),
+        end:   parseTime(timeMatch[2]),
+        text:  lines.slice(2).join(' ').trim()
+      };
+    }).filter(Boolean);
+  }
+
+  function parseTime(ts) {
+    const [h, m, rest] = ts.split(':');
+    const [s, ms] = rest.split(',');
+    return parseInt(h)*3600 + parseInt(m)*60 + parseInt(s) + parseInt(ms)/1000;
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2,'0')}`;
+  }
+
+  // ── CAPTION SYNC ──
+  function syncCaptions() {
+    const video = document.getElementById('preview-video');
+    const t = video.currentTime;
+    const box = document.getElementById('caption-box');
+
+    // Update timeline
+    if (video.duration) {
+      document.getElementById('timeline-progress').style.width = (t / video.duration * 100) + '%';
+      document.getElementById('time-display').textContent = `${formatTime(t)} / ${formatTime(video.duration)}`;
+    }
+
+    // Find current caption
+    const idx = captions.findIndex(c => t >= c.start && t <= c.end);
+
+    if (idx === -1) {
+      box.classList.add('hidden');
+      highlightCaptionItem(-1);
+      currentCapIdx = -1;
+      return;
+    }
+
+    if (idx !== currentCapIdx) {
+      currentCapIdx = idx;
+      box.classList.remove('hidden');
+      box.textContent = captions[idx].text;
+
+      // Apply animation
+      box.classList.remove('anim-fade', 'anim-pop', 'anim-slide', 'anim-type');
+      void box.offsetWidth; // reflow
+      if (styles.animation !== 'none') box.classList.add(`anim-${styles.animation}`);
+
+      applyStyles();
+      highlightCaptionItem(idx);
+    }
+  }
+
+  function highlightCaptionItem(idx) {
+    document.querySelectorAll('.caption-item').forEach((el, i) => {
+      el.classList.toggle('active', i === idx);
+      if (i === idx) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  }
+
+  // ── APPLY STYLES ──
+  function applyStyles() {
+    const box = document.getElementById('caption-box');
+
+    box.style.fontFamily  = styles.font;
+    box.style.fontSize    = styles.size + 'px';
+    box.style.fontWeight  = styles.bold ? '700' : '400';
+    box.style.fontStyle   = styles.italic ? 'italic' : 'normal';
+    box.style.color       = styles.textColor;
+
+    // Background
+    if (styles.bgOn) {
+      const hex = styles.bgColor;
+      const r = parseInt(hex.slice(1,3),16);
+      const g = parseInt(hex.slice(3,5),16);
+      const b = parseInt(hex.slice(5,7),16);
+      box.style.backgroundColor = `rgba(${r},${g},${b},${styles.bgOpacity/100})`;
+      box.style.padding = '0.3em 0.65em';
+      box.style.borderRadius = '4px';
+    } else {
+      box.style.backgroundColor = 'transparent';
+      box.style.padding = '0';
+    }
+
+    // Text shadow / outline
+    let shadow = '';
+    if (styles.shadow) shadow += `2px 2px 6px rgba(0,0,0,0.9)`;
+    if (styles.outline) {
+      const oc = styles.outlineColor;
+      shadow += (shadow ? ', ' : '') +
+        `-1px -1px 0 ${oc}, 1px -1px 0 ${oc}, -1px 1px 0 ${oc}, 1px 1px 0 ${oc}`;
+    }
+    box.style.textShadow = shadow;
+
+    // Position from styles.posX / posY
+    applyPosition();
+  }
+
+  function applyPosition() {
+    const box = document.getElementById('caption-box');
+    box.style.left      = styles.posX + '%';
+    box.style.top       = styles.posY + '%';
+    box.style.bottom    = 'auto';
+    box.style.transform = 'translate(-50%, -50%)';
+  }
+
+  // ── POSITION GRID ──
+  const positionMap = {
+    'top-left':    { x: 15, y: 10 }, 'top-center':  { x: 50, y: 10 }, 'top-right':   { x: 85, y: 10 },
+    'mid-left':    { x: 15, y: 50 }, 'mid-center':  { x: 50, y: 50 }, 'mid-right':   { x: 85, y: 50 },
+    'bot-left':    { x: 15, y: 88 }, 'bot-center':  { x: 50, y: 88 }, 'bot-right':   { x: 85, y: 88 },
+  };
+
+  document.getElementById('position-grid').addEventListener('click', e => {
+    const btn = e.target.closest('.pos-btn');
+    if (!btn) return;
+    document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const pos = positionMap[btn.dataset.pos];
+    styles.posX = pos.x; styles.posY = pos.y;
+    applyPosition();
+  });
+
+  // ── DRAG TO POSITION ──
+  const captionBox = document.getElementById('caption-box');
+  let isDragging = false, dragStartX, dragStartY, dragStartLeft, dragStartTop;
+
+  captionBox.addEventListener('mousedown', e => {
+    isDragging = true;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    const container = document.getElementById('preview-video').getBoundingClientRect();
+    dragStartLeft = styles.posX / 100 * container.width;
+    dragStartTop  = styles.posY / 100 * container.height;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const container = document.getElementById('preview-video').getBoundingClientRect();
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    styles.posX = Math.max(5, Math.min(95, (dragStartLeft + dx) / container.width * 100));
+    styles.posY = Math.max(5, Math.min(95, (dragStartTop  + dy) / container.height * 100));
+    applyPosition();
+    // deactivate grid buttons when dragging manually
+    document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+  });
+
+  document.addEventListener('mouseup', () => isDragging = false);
+
+  // Touch support
+  captionBox.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    isDragging = true;
+    dragStartX = t.clientX; dragStartY = t.clientY;
+    const container = document.getElementById('preview-video').getBoundingClientRect();
+    dragStartLeft = styles.posX / 100 * container.width;
+    dragStartTop  = styles.posY / 100 * container.height;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const t = e.touches[0];
+    const container = document.getElementById('preview-video').getBoundingClientRect();
+    const dx = t.clientX - dragStartX;
+    const dy = t.clientY - dragStartY;
+    styles.posX = Math.max(5, Math.min(95, (dragStartLeft + dx) / container.width * 100));
+    styles.posY = Math.max(5, Math.min(95, (dragStartTop  + dy) / container.height * 100));
+    applyPosition();
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => isDragging = false);
+
+  // ── VIDEO CONTROLS ──
+  const video = document.getElementById('preview-video');
+
+  document.getElementById('play-btn').addEventListener('click', () => {
+    if (video.paused) { video.play(); document.getElementById('play-btn').textContent = '⏸'; }
+    else { video.pause(); document.getElementById('play-btn').textContent = '▶'; }
+  });
+
+  video.addEventListener('ended', () => {
+    document.getElementById('play-btn').textContent = '▶';
+  });
+
+  document.getElementById('timeline').addEventListener('click', e => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct  = (e.clientX - rect.left) / rect.width;
+    video.currentTime = pct * video.duration;
+  });
+
+  // ── STYLE CONTROLS ──
+
+  // Font
+  document.getElementById('font-grid').addEventListener('click', e => {
+    const btn = e.target.closest('.font-btn');
+    if (!btn) return;
+    document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    styles.font = btn.dataset.font;
+    applyStyles();
+  });
+
+  // Size
+  document.getElementById('size-slider').addEventListener('input', function() {
+    styles.size = parseInt(this.value);
+    document.getElementById('size-value').textContent = this.value + 'px';
+    applyStyles();
+  });
+
+  // Bold / Italic / Shadow / Outline
+  document.getElementById('style-pills').addEventListener('click', e => {
+    const btn = e.target.closest('.style-pill');
+    if (!btn) return;
+    btn.classList.toggle('active');
+    styles[btn.dataset.style] = btn.classList.contains('active');
+    applyStyles();
+  });
+
+  // Colors
+  document.getElementById('text-color').addEventListener('input', function() {
+    styles.textColor = this.value; applyStyles();
+  });
+  document.getElementById('bg-color').addEventListener('input', function() {
+    styles.bgColor = this.value; applyStyles();
+  });
+  document.getElementById('outline-color').addEventListener('input', function() {
+    styles.outlineColor = this.value; applyStyles();
+  });
+
+  // BG toggle
+  document.getElementById('bg-toggle').addEventListener('click', function() {
+    this.classList.toggle('on');
+    styles.bgOn = this.classList.contains('on');
+    applyStyles();
+  });
+
+  // BG opacity
+  document.getElementById('bg-opacity').addEventListener('input', function() {
+    styles.bgOpacity = parseInt(this.value);
+    document.getElementById('bg-opacity-value').textContent = this.value + '%';
+    applyStyles();
+  });
+
+  // Animation
+  document.getElementById('anim-pills').addEventListener('click', e => {
+    const btn = e.target.closest('.anim-pill');
+    if (!btn) return;
+    document.querySelectorAll('.anim-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    styles.animation = btn.dataset.anim;
+  });
+
+  // ── CAPTION LIST ──
+  function renderCaptionList() {
+    const list = document.getElementById('caption-list');
+    document.getElementById('caption-count').textContent = captions.length;
+    list.innerHTML = '';
+    captions.forEach((cap, i) => {
+      const item = document.createElement('div');
+      item.className = 'caption-item';
+      item.innerHTML = `
+        <div class="caption-item-time">${formatTime(cap.start)} → ${formatTime(cap.end)}</div>
+        <div class="caption-item-text">${cap.text}</div>
+      `;
+      item.addEventListener('click', () => {
+        video.currentTime = cap.start + 0.05;
+        if (video.paused) video.play(), document.getElementById('play-btn').textContent = '⏸';
+      });
+      list.appendChild(item);
+    });
+  }
+
+  // ── EXPORT ──
+  document.getElementById('export-btn').addEventListener('click', exportVideo);
+
+  async function exportVideo() {
+    const progressEl = document.getElementById('export-progress');
+    const barEl      = document.getElementById('export-bar');
+    const statusEl   = document.getElementById('export-status');
+
+    progressEl.classList.add('show');
+    barEl.style.width = '0%';
+    statusEl.textContent = 'Setting up canvas renderer...';
+
+    try {
+      // Use Canvas + MediaRecorder to burn captions into video
+      const sourceVideo = document.getElementById('preview-video');
+      sourceVideo.pause();
+      sourceVideo.currentTime = 0;
+      document.getElementById('play-btn').textContent = '▶';
+
+      const canvas  = document.createElement('canvas');
+      canvas.width  = sourceVideo.videoWidth  || 1280;
+      canvas.height = sourceVideo.videoHeight || 720;
+      const ctx     = canvas.getContext('2d');
+
+      barEl.style.width = '10%';
+      statusEl.textContent = 'Starting canvas render...';
+
+      // Setup MediaRecorder
+      const stream   = canvas.captureStream(30);
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+      const chunks   = [];
+
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = videoFile.name.replace(/\.[^.]+$/, '') + '_captioned.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+        progressEl.classList.remove('show');
+        barEl.style.width = '0%';
+      };
+
+      recorder.start();
+      barEl.style.width = '20%';
+      statusEl.textContent = 'Rendering frames...';
+
+      await new Promise((resolve, reject) => {
+        sourceVideo.currentTime = 0;
+        sourceVideo.play();
+
+        sourceVideo.ontimeupdate = () => {
+          // Draw video frame
+          ctx.drawImage(sourceVideo, 0, 0, canvas.width, canvas.height);
+
+          // Find current caption
+          const t   = sourceVideo.currentTime;
+          const cap = captions.find(c => t >= c.start && t <= c.end);
+
+          if (cap) {
+            const fontSize = Math.round(styles.size * (canvas.width / 640));
+            ctx.font       = `${styles.bold ? 'bold' : 'normal'} ${styles.italic ? 'italic' : 'normal'} ${fontSize}px ${styles.font}`;
+            ctx.textAlign  = 'center';
+            ctx.textBaseline = 'middle';
+
+            const x = (styles.posX / 100) * canvas.width;
+            const y = (styles.posY / 100) * canvas.height;
+            const textW = ctx.measureText(cap.text).width;
+            const padX  = fontSize * 0.4;
+            const padY  = fontSize * 0.25;
+
+            // Background box
+            if (styles.bgOn) {
+              const hex = styles.bgColor;
+              const r = parseInt(hex.slice(1,3),16);
+              const g = parseInt(hex.slice(3,5),16);
+              const b = parseInt(hex.slice(5,7),16);
+              ctx.fillStyle = `rgba(${r},${g},${b},${styles.bgOpacity/100})`;
+              ctx.fillRect(x - textW/2 - padX, y - fontSize/2 - padY, textW + padX*2, fontSize + padY*2);
+            }
+
+            // Outline
+            if (styles.outline) {
+              ctx.strokeStyle = styles.outlineColor;
+              ctx.lineWidth   = Math.max(2, fontSize * 0.06);
+              ctx.strokeText(cap.text, x, y);
+            }
+
+            // Shadow
+            if (styles.shadow) {
+              ctx.shadowColor = 'rgba(0,0,0,0.8)';
+              ctx.shadowBlur  = 8;
+              ctx.shadowOffsetX = 2;
+              ctx.shadowOffsetY = 2;
+            }
+
+            ctx.fillStyle = styles.textColor;
+            ctx.fillText(cap.text, x, y);
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur  = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+          }
+
+          // Progress
+          if (sourceVideo.duration) {
+            const pct = 20 + (sourceVideo.currentTime / sourceVideo.duration) * 75;
+            barEl.style.width = pct + '%';
+            statusEl.textContent = `Rendering... ${Math.round(sourceVideo.currentTime)}s / ${Math.round(sourceVideo.duration)}s`;
+          }
+        };
+
+        sourceVideo.onended = () => {
+          recorder.stop();
+          barEl.style.width = '100%';
+          statusEl.textContent = 'Preparing download...';
+          resolve();
+        };
+
+        sourceVideo.onerror = reject;
+      });
+
+    } catch (err) {
+      progressEl.classList.remove('show');
+      alert(`Export failed: ${err.message}\n\nTip: Try a shorter video clip.`);
+    }
+  }
+</script>
+</body>
+</html>
