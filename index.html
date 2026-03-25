@@ -851,10 +851,28 @@
     overlay.classList.add('show');
 
     try {
-      // FIX: Better codec detection for export
-      const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-      let mimeType = mimeTypes.find(m => MediaRecorder.isTypeSupported(m));
-      if (!mimeType) throw new Error('Your browser does not support video recording. Try Chrome or Edge.');
+      // FIX: Detect MP4 support first, then fallback to WebM
+      let mimeType = null;
+      let fileExtension = '.webm';
+
+      // Try MP4 first (better compatibility)
+      if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+        fileExtension = '.mp4';
+      } 
+      // Fallback to WebM codecs
+      else {
+        const webmTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+        for (let type of webmTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            mimeType = type;
+            fileExtension = '.webm';
+            break;
+          }
+        }
+      }
+
+      if (!mimeType) throw new Error('Your browser does not support video recording. Try Chrome, Edge, or Firefox.');
 
       statusEl.textContent = 'Setting up...';
       barEl.style.width = '5%';
@@ -894,7 +912,9 @@
         audioTracks.forEach(t => stream.addTrack(t));
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 });
+      // FIX: Use appropriate bitrate for MP4 vs WebM
+      const bitrate = fileExtension === '.mp4' ? 5000000 : 8000000;
+      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitrate });
       recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
 
       recorder.start(100);
@@ -925,6 +945,33 @@
         barEl.style.width = pct + '%';
         statusEl.textContent = `Frame ${frame} / ${totalFrames} (${Math.round(t)}s / ${Math.round(duration)}s)`;
       }
+
+      recorder.stop();
+      barEl.style.width = '100%';
+      statusEl.textContent = 'Preparing download...';
+
+      await new Promise(res => { recorder.onstop = res; });
+
+      const blob = new Blob(chunks, { type: mimeType });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      // FIX: Use correct file extension based on actual codec used
+      a.download = (videoFile.name.replace(/\.[^.]+$/, '') || 'video') + '_captioned' + fileExtension;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      statusEl.textContent = `Download complete! Exported as ${fileExtension.toUpperCase().substring(1)} format.`;
+      setTimeout(() => overlay.classList.remove('show'), 2000);
+
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+      overlay.classList.remove('show');
+    } finally {
+      video.currentTime = 0;
+      rafId = requestAnimationFrame(renderLoop);
+    }
+  }
 
       recorder.stop();
       barEl.style.width = '100%';
