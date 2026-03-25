@@ -973,29 +973,6 @@
     }
   }
 
-      recorder.stop();
-      barEl.style.width = '100%';
-      statusEl.textContent = 'Preparing download...';
-
-      await new Promise(res => { recorder.onstop = res; });
-
-      const blob = new Blob(chunks, { type: mimeType });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = (videoFile.name.replace(/\.[^.]+$/, '') || 'video') + '_captioned.webm';
-      a.click();
-      URL.revokeObjectURL(url);
-
-    } catch (err) {
-      alert('Export failed: ' + err.message);
-    } finally {
-      overlay.classList.remove('show');
-      video.currentTime = 0;
-      rafId = requestAnimationFrame(renderLoop);
-    }
-  }
-
   // Draw caption on any context (used for export)
   function drawCaptionOnCtx(c, text, cw, ch, alpha) {
     const x  = (S.posX / 100) * cw;
