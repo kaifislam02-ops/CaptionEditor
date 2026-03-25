@@ -61,7 +61,6 @@
     .export-btn:hover { background: #d4f54a; }
     .export-btn:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; }
 
-    /* ── UPLOAD SCREEN ── */
     #upload-screen {
       min-height: calc(100vh - 53px);
       display: flex; flex-direction: column;
@@ -108,7 +107,6 @@
     .start-btn.ready { opacity: 1; pointer-events: all; }
     .start-btn.ready:hover { background: #d4f54a; transform: translateY(-2px); }
 
-    /* ── EDITOR ── */
     #editor-screen { display: none; }
 
     .editor-layout {
@@ -162,7 +160,6 @@
 
     .time-display { font-family: monospace; font-size: 0.72rem; color: var(--muted2); white-space: nowrap; flex-shrink: 0; }
 
-    /* ── STYLE PANEL ── */
     .style-panel {
       background: var(--surface); border-left: 1px solid var(--border);
       overflow-y: auto; display: flex; flex-direction: column;
@@ -198,7 +195,6 @@
     }
     .size-value { font-family: monospace; font-size: 0.75rem; color: var(--muted2); min-width: 34px; text-align: right; }
 
-    /* Font style presets */
     .font-style-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem; }
     .fs-btn {
       background: var(--surface2); border: 1px solid var(--border2);
@@ -217,7 +213,6 @@
     .pill:hover { border-color: var(--muted2); color: var(--text); }
     .pill.active { background: rgba(200,241,53,0.1); border-color: var(--accent); color: var(--accent); }
 
-    /* Color palette */
     .color-palette {
       display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem;
     }
@@ -258,7 +253,6 @@
     .pos-btn:hover { border-color: var(--muted2); }
     .pos-btn.active { background: rgba(200,241,53,0.1); border-color: var(--accent); color: var(--accent); }
 
-    /* Animation grid — 2 columns to fit 6 options */
     .anim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
     .anim-btn {
       background: var(--surface2); border: 1px solid var(--border2);
@@ -284,7 +278,6 @@
     .cap-time { font-family: monospace; font-size: 0.62rem; color: var(--muted); margin-bottom: 0.15rem; }
     .cap-text { font-size: 0.76rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Export overlay */
     .export-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
       z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
@@ -363,7 +356,6 @@
 
     <div class="style-panel">
 
-      <!-- Font family -->
       <div class="panel-section">
         <span class="panel-label">Font</span>
         <div class="font-grid" id="font-grid">
@@ -374,7 +366,6 @@
         </div>
       </div>
 
-      <!-- Font style presets -->
       <div class="panel-section">
         <span class="panel-label">Font Style</span>
         <div class="font-style-grid" id="font-style-grid">
@@ -387,7 +378,6 @@
         </div>
       </div>
 
-      <!-- Size -->
       <div class="panel-section">
         <span class="panel-label">Size</span>
         <div class="size-row">
@@ -396,19 +386,15 @@
         </div>
       </div>
 
-      <!-- Text color palette -->
       <div class="panel-section">
         <span class="panel-label">Text Color</span>
-        <div class="color-palette" id="text-palette">
-          <!-- swatches injected by JS -->
-        </div>
+        <div class="color-palette" id="text-palette"></div>
         <div class="size-row">
           <span style="font-size:0.7rem;color:var(--muted);white-space:nowrap;">Custom</span>
           <input type="color" id="c-text-custom" value="#ffffff" style="width:38px;height:26px;border:1px solid var(--border2);border-radius:4px;cursor:pointer;padding:2px;background:none;"/>
         </div>
       </div>
 
-      <!-- BG + Outline colors -->
       <div class="panel-section">
         <span class="panel-label">Colors</span>
         <div class="color-row">
@@ -442,7 +428,6 @@
         </div>
       </div>
 
-      <!-- Effects (was "Style") -->
       <div class="panel-section">
         <span class="panel-label">Effects</span>
         <div class="pill-row" id="effect-pills">
@@ -453,7 +438,6 @@
         </div>
       </div>
 
-      <!-- Position -->
       <div class="panel-section">
         <span class="panel-label">Position — or drag on preview</span>
         <div class="pos-grid" id="pos-grid">
@@ -469,7 +453,6 @@
         </div>
       </div>
 
-      <!-- Animation -->
       <div class="panel-section">
         <span class="panel-label">Animation</span>
         <div class="anim-grid" id="anim-grid">
@@ -482,7 +465,6 @@
         </div>
       </div>
 
-      <!-- Caption list -->
       <div class="panel-section" style="border-bottom:none;">
         <span class="panel-label">Captions (<span id="cap-count">0</span>)</span>
         <div class="caption-list" id="cap-list"></div>
@@ -492,30 +474,23 @@
   </div>
 </div>
 
-<!-- EXPORT OVERLAY -->
 <div class="export-overlay" id="export-overlay">
   <div class="export-box">
-    <div class="export-title">⏺ RECORDING</div>
-    <div class="export-sub">Playing video in real time and recording with captions and audio.</div>
+    <div class="export-title">⏺ RENDERING</div>
+    <div class="export-sub">Frame-by-frame rendering with captions. Please wait...</div>
     <div class="export-bar-wrap"><div class="export-bar" id="export-bar"></div></div>
-    <div class="export-status" id="export-status">Starting playback...</div>
-    <div class="export-note">⚠️ Keep this tab visible — don't switch tabs while exporting.</div>
+    <div class="export-status" id="export-status">Initializing...</div>
+    <div class="export-note">⚠️ Keep this tab visible — rendering in progress.</div>
   </div>
 </div>
 
 <script>
-  // ── STATE ──
   let videoFile  = null;
   let captions   = [];
   let rafId      = null;
   let lastCapIdx = -1;
   let capAnimStart = 0;
   const CAP_ANIM_MS = 300;
-
-  // Fix for lag: throttle canvas draws to 30fps max
-  let lastDrawTime = 0;
-  const TARGET_FPS = 30;
-  const FRAME_MS   = 1000 / TARGET_FPS;
 
   const S = {
     font:        'Arial',
@@ -539,14 +514,12 @@
     posY:        88,
   };
 
-  // Text color quick palette
   const TEXT_COLORS = [
     '#ffffff', '#000000', '#ffff00', '#ff3d00',
     '#c8f135', '#6bffb8', '#4fc3f7', '#ff6b6b',
     '#e040fb', '#ff9100', '#f5f5dc', '#1a1a1a',
   ];
 
-  // ── ELEMENTS ──
   const video    = document.getElementById('source-video');
   const canvas   = document.getElementById('preview-canvas');
   const ctx      = canvas.getContext('2d');
@@ -555,7 +528,6 @@
   const fillEl   = document.getElementById('timeline-fill');
   const timeDisp = document.getElementById('time-display');
 
-  // ── BUILD COLOR PALETTE ──
   function buildPalette() {
     const container = document.getElementById('text-palette');
     container.innerHTML = '';
@@ -575,7 +547,6 @@
     });
   }
 
-  // ── UPLOADS ──
   document.getElementById('video-input').addEventListener('change', function() {
     if (!this.files[0]) return;
     videoFile = this.files[0];
@@ -615,7 +586,6 @@
     rafId = requestAnimationFrame(renderLoop);
   });
 
-  // ── SRT PARSER ──
   function parseSRT(text) {
     return text.trim().split(/\n\s*\n/).map(b => {
       const lines = b.trim().split('\n');
@@ -637,12 +607,8 @@
     return `${m}:${String(sec).padStart(2,'0')}`;
   }
 
-  // ── RENDER LOOP — throttled to 30fps to prevent lag ──
   function renderLoop(now) {
     rafId = requestAnimationFrame(renderLoop);
-    // Throttle: only draw if enough time has passed
-    if (now - lastDrawTime < FRAME_MS) return;
-    lastDrawTime = now;
     drawOnce();
   }
 
@@ -671,7 +637,6 @@
     }
   }
 
-  // ── DRAW CAPTION ──
   function drawCaption(c, text, cw, ch, animProgress) {
     const x  = (S.posX / 100) * cw;
     const y  = (S.posY / 100) * ch;
@@ -683,7 +648,6 @@
     c.textAlign    = 'center';
     c.textBaseline = 'middle';
 
-    // Word wrap
     const words = displayText.split(' ');
     const maxW  = cw * 0.85;
     const lines = [];
@@ -700,7 +664,6 @@
     const padX   = fs * 0.55;
     const padY   = fs * 0.32;
 
-    // Animation
     let alpha = 1, offsetY = 0, scaleX = 1, scaleY = 1;
     const p = animProgress;
 
@@ -709,7 +672,6 @@
       case 'slide':  offsetY = (1 - p) * 18; alpha = p; break;
       case 'pop':    scaleX = scaleY = 0.7 + 0.3 * p; alpha = p; break;
       case 'bounce':
-        // Overshoot then settle
         scaleY = p < 0.6 ? 1.25 - (p / 0.6) * 0.25 : 1 + Math.sin((p - 0.6) / 0.4 * Math.PI) * 0.08;
         alpha  = p;
         break;
@@ -725,11 +687,9 @@
       c.translate(-x, -(y + offsetY));
     }
 
-    // Measure max line width
     let maxLW = 0;
     lines.forEach(l => { const w = c.measureText(l).width; if (w > maxLW) maxLW = w; });
 
-    // Background box
     if (S.bgOn) {
       const { r, g, b } = hexToRgb(S.bgColor);
       c.fillStyle = `rgba(${r},${g},${b},${S.bgOpacity/100})`;
@@ -742,11 +702,9 @@
       c.fill();
     }
 
-    // Draw each line
     lines.forEach((l, i) => {
       const ly = y + offsetY - totalH/2 + lineH*i + lineH/2;
 
-      // Highlight effect — colored underline/box behind text
       if (S.highlight) {
         const { r, g, b } = hexToRgb(S.highlightColor);
         c.fillStyle = `rgba(${r},${g},${b},0.75)`;
@@ -754,28 +712,24 @@
         c.fillRect(x - tw/2 - 4, ly - fs/2 + fs*0.55, tw + 8, fs * 0.35);
       }
 
-      // Glow effect
       if (S.glow) {
         const { r, g, b } = hexToRgb(S.glowColor);
         c.shadowColor   = `rgba(${r},${g},${b},0.9)`;
         c.shadowBlur    = fs * 0.5;
         c.shadowOffsetX = 0;
         c.shadowOffsetY = 0;
-        // Draw glow pass first
         c.fillStyle = S.textColor;
         c.fillText(l, x, ly);
         c.shadowBlur = 0;
         c.shadowColor = 'transparent';
       }
 
-      // Shadow
       if (S.shadow) {
         c.shadowColor   = 'rgba(0,0,0,0.9)';
         c.shadowBlur    = Math.max(6, fs * 0.28);
         c.shadowOffsetX = 2; c.shadowOffsetY = 2;
       }
 
-      // Outline
       if (S.outline) {
         c.strokeStyle = S.outlineColor;
         c.lineWidth   = Math.max(2, fs * 0.08);
@@ -786,7 +740,6 @@
       c.fillStyle = S.textColor;
       c.fillText(l, x, ly);
 
-      // Reset shadow
       c.shadowColor = 'transparent'; c.shadowBlur = 0;
       c.shadowOffsetX = 0; c.shadowOffsetY = 0;
     });
@@ -811,7 +764,6 @@
     c.closePath();
   }
 
-  // ── DRAG ──
   let dragging = false, dragSX, dragSY;
 
   canvas.addEventListener('mousedown', e => { dragging = true; dragSX = e.clientX; dragSY = e.clientY; e.preventDefault(); });
@@ -835,7 +787,6 @@
   }, { passive: true });
   document.addEventListener('touchend', () => dragging = false);
 
-  // ── VIDEO CONTROLS ──
   playBtn.addEventListener('click', () => {
     if (video.paused) { video.play(); playBtn.textContent = '⏸'; }
     else { video.pause(); playBtn.textContent = '▶'; }
@@ -847,7 +798,6 @@
     video.currentTime = ((e.clientX - r.left) / r.width) * video.duration;
   });
 
-  // ── STYLE CONTROLS ──
   document.getElementById('font-grid').addEventListener('click', e => {
     const b = e.target.closest('.font-btn'); if (!b) return;
     document.querySelectorAll('.font-btn').forEach(x => x.classList.remove('active'));
@@ -904,7 +854,6 @@
     b.classList.add('active'); S.animation = b.dataset.anim;
   });
 
-  // ── CAPTION LIST ──
   function renderCapList() {
     const list = document.getElementById('cap-list');
     document.getElementById('cap-count').textContent = captions.length;
@@ -925,7 +874,6 @@
     });
   }
 
-  // ── EXPORT ──
   document.getElementById('export-btn').addEventListener('click', exportVideo);
 
   async function exportVideo() {
@@ -935,8 +883,6 @@
 
     video.pause(); playBtn.textContent = '▶';
     cancelAnimationFrame(rafId);
-    video.currentTime = 0;
-    await new Promise(r => setTimeout(r, 200));
 
     overlay.classList.add('show');
     barEl.style.width = '0%';
@@ -945,7 +891,12 @@
       const mimes = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
       const mimeType = mimes.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
 
-      const canvasStream = canvas.captureStream(30);
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width  = canvas.width;
+      exportCanvas.height = canvas.height;
+      const exportCtx = exportCanvas.getContext('2d');
+
+      const canvasStream = exportCanvas.captureStream(30);
 
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       const audioCtx = new AudioCtx();
@@ -959,29 +910,45 @@
       const recorder = new MediaRecorder(canvasStream, { mimeType, videoBitsPerSecond: 6000000, audioBitsPerSecond: 128000 });
       recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
 
-      // Restart render loop for export
-      lastDrawTime = 0;
-      rafId = requestAnimationFrame(renderLoop);
-
-      recorder.start(200);
+      recorder.start(100);
       barEl.style.width = '5%';
-      statusEl.textContent = 'Recording in real time...';
+      statusEl.textContent = 'Rendering frames with captions...';
 
-      await video.play();
+      const fps = 30;
+      const duration = video.duration;
+      const totalFrames = Math.ceil(duration * fps);
+      let frame = 0;
 
-      await new Promise((resolve, reject) => {
-        const prog = setInterval(() => {
-          if (!video.duration) return;
-          barEl.style.width = (5 + (video.currentTime / video.duration) * 90) + '%';
-          statusEl.textContent = `Recording... ${fmt(video.currentTime)} / ${fmt(video.duration)}`;
-        }, 500);
-        video.onended = () => { clearInterval(prog); resolve(); };
-        video.onerror = reject;
-      });
+      video.currentTime = 0;
+      await new Promise(r => { const onSeeked = () => { video.removeEventListener('seeked', onSeeked); r(); }; video.addEventListener('seeked', onSeeked); });
+
+      while (frame < totalFrames) {
+        const t = frame / fps;
+        video.currentTime = t;
+
+        await new Promise(r => {
+          const onSeeked = () => { video.removeEventListener('seeked', onSeeked); r(); };
+          video.addEventListener('seeked', onSeeked);
+          setTimeout(() => { video.removeEventListener('seeked', onSeeked); r(); }, 50);
+        });
+
+        exportCtx.drawImage(video, 0, 0, exportCanvas.width, exportCanvas.height);
+
+        const cap = captions.find(c => t >= c.start && t <= c.end);
+        if (cap) {
+          drawCaption(exportCtx, cap.text, exportCanvas.width, exportCanvas.height, 1);
+        }
+
+        frame++;
+        const pct = 5 + (frame / totalFrames) * 90;
+        barEl.style.width = pct + '%';
+        statusEl.textContent = `Frame ${frame} / ${totalFrames} (${fmt(t)} / ${fmt(duration)})`;
+      }
 
       recorder.stop();
       barEl.style.width = '97%';
-      statusEl.textContent = 'Finalizing...';
+      statusEl.textContent = 'Finalizing video...';
+
       await new Promise(r => { recorder.onstop = r; });
       audioCtx.close();
 
@@ -991,17 +958,22 @@
       const blob = new Blob(chunks, { type: mimeType });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
-      a.href = url; a.download = (videoFile.name.replace(/\.[^.]+$/, '') || 'video') + '_captioned.webm';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      a.href = url;
+      a.download = (videoFile.name.replace(/\.[^.]+$/, '') || 'video') + '_captioned.webm';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      setTimeout(() => overlay.classList.remove('show'), 1500);
+
     } catch (err) {
-      alert('Export failed: ' + err.message + '\n\nMake sure you are on the GitHub Pages URL using Chrome or Edge.');
-    } finally {
+      console.error(err);
+      alert('Export failed: ' + err.message + '\n\nUse Chrome/Edge on GitHub Pages.');
       overlay.classList.remove('show');
+    } finally {
       video.currentTime = 0;
       cancelAnimationFrame(rafId);
-      lastDrawTime = 0;
       rafId = requestAnimationFrame(renderLoop);
     }
   }
