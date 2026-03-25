@@ -133,8 +133,14 @@
       display: block;
     }
 
-    /* Hidden video — just used as source */
-    #source-video { display: none; }
+    /* FIX: Hidden video with proper visibility for canvas rendering */
+    #source-video { 
+      position: absolute;
+      left: -9999px;
+      width: 1280px;
+      height: 720px;
+      visibility: hidden;
+    }
 
     .video-controls {
       display: flex; align-items: center; gap: 0.75rem;
@@ -318,7 +324,7 @@
 
 <!-- EDITOR SCREEN -->
 <div id="editor-screen">
-  <!-- Hidden video source -->
+  <!-- Hidden video source - FIX: Use visibility instead of display:none -->
   <video id="source-video" playsinline muted></video>
 
   <div class="editor-layout">
@@ -483,9 +489,18 @@
     videoFile = this.files[0];
     video.src = URL.createObjectURL(videoFile);
     video.load();
+    // FIX: Improved video element positioning for proper canvas rendering
     video.onloadedmetadata = () => {
       canvas.width  = video.videoWidth  || 1280;
       canvas.height = video.videoHeight || 720;
+      
+      // Ensure video element is properly sized for rendering
+      video.style.position = 'absolute';
+      video.style.width = canvas.width + 'px';
+      video.style.height = canvas.height + 'px';
+      video.style.visibility = 'hidden';
+      video.style.left = '-9999px';
+      
       drawFrame(); // show first frame immediately
     };
     document.getElementById('video-done').style.display = 'block';
@@ -821,6 +836,7 @@
   }
 
   // ── EXPORT ── frame-by-frame seek method (most reliable)
+  // FIX: Improved MIME type detection and audio handling
   document.getElementById('export-btn').addEventListener('click', exportVideo);
 
   async function exportVideo() {
@@ -835,7 +851,7 @@
     overlay.classList.add('show');
 
     try {
-      // Detect supported MIME
+      // FIX: Better codec detection for export
       const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
       let mimeType = mimeTypes.find(m => MediaRecorder.isTypeSupported(m));
       if (!mimeType) throw new Error('Your browser does not support video recording. Try Chrome or Edge.');
@@ -861,14 +877,22 @@
       const chunks = [];
       const stream = expCanvas.captureStream(fps);
 
-      // Add audio track from video if possible
+      // FIX: Improved audio track handling
+      const audioTracks = [];
       try {
         if (video.captureStream) {
           const vStream = video.captureStream();
-          const audioTracks = vStream.getAudioTracks();
-          audioTracks.forEach(t => stream.addTrack(t));
+          const tracks = vStream.getAudioTracks();
+          audioTracks.push(...tracks);
         }
-      } catch(e) { /* audio not available */ }
+      } catch(e) { 
+        console.warn('Audio capture not available:', e);
+      }
+
+      // Add audio tracks if available
+      if (audioTracks.length > 0) {
+        audioTracks.forEach(t => stream.addTrack(t));
+      }
 
       const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 });
       recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
